@@ -9,10 +9,21 @@ feature 'User adds a new link' do
     expect(link.title).to eq('Makers Academy')
   end
 
-  def add_link(url, title)
+  scenario 'with a few tags' do
+    visit '/'
+    add_link('http://www.makersacademy.com/',
+             'Makers Academy',
+             %w(education ruby))
+    link = Link.first
+    expect(link.tags.map(&:text)).to include 'education', 'ruby'
+  end
+
+  def add_link(url, title, tags = [])
     within ('#new-link') do
       fill_in 'url', with: url
       fill_in 'title', with: title
+      # space separated tags
+      fill_in 'tags', with: tags.join(' ')
       click_button 'Add link'
     end
   end
