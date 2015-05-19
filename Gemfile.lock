@@ -120,6 +120,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  bcrypt-ruby
   byebug
   capybara
   data_mapper
