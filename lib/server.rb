@@ -1,5 +1,6 @@
 require 'data_mapper'
 require 'sinatra/base'
+require 'rack-flash'
 
 
 env = ENV['RACK_ENV'] || 'development'
@@ -25,6 +26,8 @@ class BookmarkManager < Sinatra::Base
   set :views, Proc.new { File.join(root, "..", "views") }
   set :public_folder, Proc.new { File.join(root, "..", "public") }
 
+  use Rack::Flash
+
   get '/' do
     @links = Link.all
     erb :index
@@ -47,16 +50,25 @@ class BookmarkManager < Sinatra::Base
   end
 
   get '/users/new' do
-    # at views/users/new.erb
+    # Create a user as the view references it
+    @user = User.new
     erb :'users/new'
   end
 
   post '/users' do
-    user = User.create(email: params[:email],
+    # Initialize the object in memory so we can check validity without losing
+    @user = User.new(email: params[:email],
                        password: params[:password],
                        password_confirmation: params[:password_confirmation])
-    session[:user_id] = user.id
-    redirect to('/')
+    # Try to save the form submission
+    if @user.save
+      session[:user_id] = @user.id
+      redirect to('/')
+      # If that doesn't work, show the prepopulated form
+    else
+      flash[:notice] = 'Sorry, your passwords do not match'
+      erb :'users/new'
+    end
   end
 
   helpers do
